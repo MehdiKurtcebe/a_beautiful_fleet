@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ASCII"?><project>
+    	
+    <version>1.0</version>
+    	
+    <description>Optimal Repositioning in E-scooter Sharing System for Urban Decorum</description>
+    	
+    <configs>
+        		
+        <config default="true" name="Configuration1" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.dat" type="data">
+			</ref>
+            		
+        </config>
+        	
+    </configs>
+    	
+
+</project>
