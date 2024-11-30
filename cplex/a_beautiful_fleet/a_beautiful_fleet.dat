@@ -1,0 +1,36 @@
+zones = 5;				//num of zones
+beautificators = 3;		//num of beautificators
+t_max = 10;				//num of time slots
+
+z0 = [1, 3, 5];	//initial zone of each beautificator
+
+//num of scooters at the beginning for each zone
+nOUT = [1, 1, 1, 1, 1];
+nHOT = [14, 11, 9, 17, 19];
+
+//num of time slots required for actions
+mBEAU = 1;
+mHOT = 2;
+mMOVE = [
+  [0, 1, 2, 3, 2],
+  [1, 0, 1, 2, 1],
+  [2, 1, 0, 1, 2],
+  [3, 2, 1, 0, 1],
+  [2, 1, 2, 1, 0]
+];
+mWAIT = 1;
+
+//profits
+piBEAU = 10;
+piHOT = 25;
+piMOVE = [
+  [0, -3, -6, -9, -6],
+  [-3, 0, -3, -6, -3],
+  [-6, -3, 0, -3, -6],
+  [-9, -6, -3, 0, -3],
+  [-6, -3, -6, -3, 0]
+];
+piWAIT = 0;
+
+//output dosyasi
+outputFile = "result.csv";
