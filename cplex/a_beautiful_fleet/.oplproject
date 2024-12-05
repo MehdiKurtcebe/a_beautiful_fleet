@@ -18,6 +18,19 @@
 			</ref>
             		
         </config>
+        		
+        <config default="false" name="kadikoy" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="kadikoy.dat" type="data">
+			</ref>
+            		
+        </config>
         	
     </configs>
     	
