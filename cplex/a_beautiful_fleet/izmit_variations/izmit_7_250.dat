@@ -5,15 +5,15 @@
  *********************************************/
 
 zones = 16;				//num of zones
-beautificators = 6;		//num of beautificators
+beautificators = 7;		//num of beautificators
 t_max = 72;				//num of time slots: 72 slots, each slot 5 min, 6 hours total
 
-z0 = [3, 5, 8, 9, 11, 15];	//initial zone of each beautificator
+z0 = [3, 5, 8, 9, 11, 13, 15];	//initial zone of each beautificator
 
 //num of scooters at the beginning for each zone
-nOUT = [ 4,  8,  8,  5,  7, 10,  6, 12, 15, 17, 10,  7,  8,  7, 10,  5];
-nHOT = [ 1,  2,  4,  1,  3,  4,  2,  6,  5, 10,  6,  3,  4,  3,  5,  2];
-// n = [ 5, 10, 12,  6, 10, 14,  8, 18, 20, 27, 16, 10, 12, 10, 15,  7]; // 200 in total
+nOUT = [ 5, 10, 10,  7,  9, 12,  8, 15, 19, 21, 13,  9, 10,  9, 13,  6];
+nHOT = [ 1,  2,  5,  1,  4,  5,  2,  7,  6, 12,  7,  4,  5,  4,  6,  3];
+// n = [ 6, 12, 15,  8, 13, 17, 10, 22, 25, 33, 20, 13, 15, 13, 19,  9]; // 250 in total
 
 //num of time slots required for actions
 mBEAU = 1;	//beau took 5 min
@@ -63,5 +63,5 @@ piMOVE = [	//calculated by distance and scooter count in each zone
 piWAIT = 0;
 
 //output dosyasi
-outputFile = "result_izmit.csv";
-objFile = "obj_izmit.txt";
+outputFile = "result_izmit_7_250.csv";
+objFile = "obj_izmit_7_250.txt";

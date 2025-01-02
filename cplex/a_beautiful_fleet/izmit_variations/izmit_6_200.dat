@@ -63,5 +63,5 @@ piMOVE = [	//calculated by distance and scooter count in each zone
 piWAIT = 0;
 
 //output dosyasi
-outputFile = "result_izmit.csv";
-objFile = "obj_izmit.txt";
+outputFile = "result_izmit_6_200.csv";
+objFile = "obj_izmit_6_200.txt";

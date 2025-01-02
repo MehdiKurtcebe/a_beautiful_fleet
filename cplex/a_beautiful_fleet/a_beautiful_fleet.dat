@@ -34,3 +34,4 @@ piWAIT = 0;
 
 //output dosyasi
 outputFile = "result.csv";
+objFile = "obj.txt";

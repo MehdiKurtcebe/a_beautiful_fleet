@@ -47,3 +47,4 @@ piWAIT = 0;
 
 //output dosyasi
 outputFile = "result_kadikoy.csv";
+objFile = "obj_kadikoy.txt";

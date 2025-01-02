@@ -1,4 +1,5 @@
 string outputFile = ...;
+string objFile = ...;
 
 int zones = ...;			// num of zones
 int beautificators = ...;	// num of beautificators
@@ -106,8 +107,18 @@ subject to {
 }
 
 execute {
+  var scooters = 0;
+  for (var z in Z) {
+    scooters += n[z];
+  }
+  
+  var objf = new IloOplOutputFile("./results/" + objFile);
+  objf.writeln("beautificators: " + beautificators);
+  objf.writeln("scooters: " + scooters);
+  objf.writeln("objective value: " + cplex.getObjValue());
+  
   // Output dosayisini ac
-  var f = new IloOplOutputFile(outputFile);
+  var f = new IloOplOutputFile("./results/" + outputFile);
 
   // Headeri yaz
   f.writeln("Beautificator,Zone_From,Time_From,Zone_To,Time_To,Profit,Action");

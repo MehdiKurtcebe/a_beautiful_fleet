@@ -44,6 +44,266 @@
 			</ref>
             		
         </config>
+        		
+        <config default="false" name="izmit_5_150" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_5_150.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_5_200" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_5_200.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_5_225" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_5_225.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_5_175" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_5_175.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_5_250" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_5_250.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_6_150" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_6_150.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_6_175" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_6_175.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_6_200" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_6_200.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_6_225" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_6_225.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_6_250" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_6_250.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_7_150" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_7_150.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_7_175" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_7_175.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_7_200" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_7_200.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_7_225" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_7_225.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_7_250" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_7_250.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_8_150" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_8_150.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_8_175" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_8_175.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_8_200" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_8_200.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_8_225" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_8_225.dat" type="data">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="izmit_8_250" category="opl">
+            			
+            <ref name="a_beautiful_fleet.mod" type="model">
+			</ref>
+            			
+            <ref name="a_beautiful_fleet.ops" type="setting">
+			</ref>
+            			
+            <ref name="izmit_variations/izmit_8_250.dat" type="data">
+			</ref>
+            		
+        </config>
         	
     </configs>
     	
