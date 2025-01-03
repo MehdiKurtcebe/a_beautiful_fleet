@@ -1,3 +1,4 @@
 beautificators: 8
 scooters: 200
 objective value: 1605
+optimality gap: 3.68%
