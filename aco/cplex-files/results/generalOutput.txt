@@ -1,0 +1,3 @@
+beautificators: 2
+scooters: 239
+objective value: 635

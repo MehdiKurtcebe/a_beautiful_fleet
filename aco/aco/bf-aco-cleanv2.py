@@ -15,7 +15,7 @@ def read_dat_file(filepath):
 
     # Get the absolute path to the datasets directory
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    datasets_dir = os.path.join(script_dir, '..', 'datasets') 
+    datasets_dir = os.path.join(script_dir, '..', 'datasets', 'aco') 
 
     # Construct the absolute path to the data file
     filepath = os.path.join(datasets_dir, filepath)  
@@ -70,8 +70,8 @@ if len(sys.argv) > 1:
     # Use the filename provided as a command-line argument
     filepath = sys.argv[1] 
 else:
-    filepath = "testData.dat"  # Default filename in the datasets directory
-    print("No input parameter provided. Using default: testData.dat")
+    filepath = "testData1.dat"  # Default filename in the datasets directory
+    print("No input parameter provided. Using default: testData1.dat")
     #sys.exit(1) 
 
 data = read_dat_file(filepath)
@@ -138,7 +138,7 @@ num_ants = 100
 num_iterations = 50
 evaporation_rate = 0.02
 pheromone_importance = 1.0
-heuristic_importance = 2.0
+heuristic_importance = 1.0
 
 #Pheromone Initialization with HashMap
 pheromones = {}
@@ -185,8 +185,14 @@ class Ant:
                 heuristic = max(0, profits["MOVE"][current_zone - 1][z2 - 1])
             else:
                 heuristic = profits[action_type]
+                if(action_type == "BEAU"):
+                    heuristic /= (mBEAU)
+                if(action_type == "HOT"):
+                    heuristic /= (mHOT)
+                
 
             pheromone = pheromones[(current_zone, z2, current_time)][action_type]
+
             probabilities.append((pheromone ** pheromone_importance) * (heuristic ** heuristic_importance))
 
         probabilities = np.array(probabilities)
@@ -218,13 +224,23 @@ class Ant:
                     action_type, next_zone, next_time = action
                     self.paths[b].append((b, self.current_zones[b], aco_time, next_zone, next_time, action_type))
                     self.total_profits[b] += heuristic_profit(action_type, self.current_zones[b], next_zone)
-
+                    # nout - nhot - n
+                    #  5      3     8
+                #beau  5      -     7
+                #beau  5      -     6
+                #beau  5            5
+                #beau  4            4
+                #hot   3            3
+                #hot   2            2
                     #Update scooters and state
                     if action_type == "BEAU":
                         n[self.current_zones[b] - 1] -= 1
+                        if(n[self.current_zones[b] - 1] < aco_nOut[self.current_zones[b] - 1]):
+                            aco_nOut[self.current_zones[b] - 1] = n[self.current_zones[b] - 1]
                         self.action_durations[b] = mBEAU - 1
                     elif action_type == "HOT":
                         aco_nOut[self.current_zones[b] - 1] -= 1
+                        n[self.current_zones[b] - 1] -= 1
                         self.action_durations[b] = mHOT - 1
                     else:  #MOVE or WAIT
                         self.action_durations[b] = next_time - aco_time - 1
@@ -238,8 +254,8 @@ def ant_colony_optimization():
     global pheromones
     best_profits = [-float("inf")] * beautificators
     best_paths = [[] for _ in range(beautificators)]
-    pheromone_increment = 0.1  
-    move_pheromone_decrement = 0.05 
+    pheromone_increment = 0.02 
+    move_pheromone_decrement = 0.5
 
     for iteration in range(num_iterations):
         global n
@@ -362,7 +378,11 @@ def generate_random_points(polygon, num_points):
 script_dir = os.path.dirname(os.path.realpath(__file__))  # Get script's directory
 csv_outputs_dir = os.path.join(script_dir, '..', 'csv-outputs')  # Path to csv-outputs dir
 
+bf_num = 0
+
 for csv_file in csv_files:
+
+    bf_num += 1
     
     csv_file_path = os.path.join(csv_outputs_dir, csv_file)  # Absolute path to the CSV file
 
@@ -432,15 +452,13 @@ for csv_file in csv_files:
         ax.text(zone_centroid.x, zone_centroid.y, row['name'], fontsize=10, ha='center', color='black')
 
     #Customize the plot
-    plt.title(f"Route of a Beautificator ({csv_file})")
-    plt.xlabel("Longitude")
-    plt.ylabel("Latitude")
+    plt.title(f"ACO - Route of a Beautificator ({bf_num})")
     
     #Save the plot with a dynamic filename based on the CSV file
     output_image_name = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
         "maps", 
-        f"aco_{csv_file.replace('.csv', '')}_route.png"
+        f"aco_bf_{bf_num}_route.png"
     )
 
     # Save the plot 
