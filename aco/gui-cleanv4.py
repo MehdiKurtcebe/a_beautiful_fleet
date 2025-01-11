@@ -40,7 +40,7 @@ class Worker(QThread):
             if self.command == "aco":
                 self.process = subprocess.Popen(['.venv/Scripts/python', 'aco/bf-aco-cleanv2.py', self.input_param], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             elif self.command == "cplex":
-                self.process = subprocess.Popen(['python', 'run-cplexv2.py', self.input_param], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                self.process = subprocess.Popen(['.venv/Scripts/python', 'run-cplexv2.py', self.input_param], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             else:
                 raise ValueError("Invalid command")
 

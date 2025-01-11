@@ -50,7 +50,7 @@ def get_beautificators_value(file_path):
           return None
   return None
 
-def run_cplex(model_path, data_path):
+def run_cplex(run_config):
   """
   Runs an OPL model using the 'oplrun' command as a subprocess.
 
@@ -60,7 +60,7 @@ def run_cplex(model_path, data_path):
   """
   try:
     # Construct the oplrun command
-    command = ["oplrun", model_path, data_path]
+    command = ["oplrun", "-p", "./cplex-files", run_config]
 
     # Execute the command as a subprocess
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -86,7 +86,7 @@ def run_cplex(model_path, data_path):
 # Paths to your files
 input_dat_file = filepath_argv
 model_data = 'cplex-files/model.dat'
-model_file = 'cplex-files/model.mod'
+run_config = 'model'
 
 # Copy the binary data from testData.dat to data.dat
 copy_dat_file(input_dat_file, model_data)
@@ -94,7 +94,7 @@ copy_dat_file(input_dat_file, model_data)
 beautificators = get_beautificators_value(input_dat_file)
 
 # Run the CPLEX model
-run_cplex(model_file, model_data)
+run_cplex(run_config)
 
 
 # Load the GeoJSON file containing the zones
