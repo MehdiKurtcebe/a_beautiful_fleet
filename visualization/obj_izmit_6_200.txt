@@ -1,4 +1,0 @@
-beautificators: 6
-scooters: 200
-objective value: 1475
-optimality gap: 2.57%
