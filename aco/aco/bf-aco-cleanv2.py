@@ -145,7 +145,12 @@ pheromones = {}
 for z1 in range(1, zones + 1):
     for z2 in range(1, zones + 1):
         for aco_time in range(0, t_max):
-            pheromones[(z1, z2, aco_time)] = {"MOVE": 1.0, "BEAU": 1.0, "HOT": 1.0, "WAIT": 1.0}
+            pheromones[(z1, z2, aco_time)] = {
+                "MOVE": 1.0 + 0.1 * max(0, profits["MOVE"][z1 - 1][z2 - 1]),
+                "BEAU": 1.0 + 0.1 * profits["BEAU"] * (t_max/mBEAU), 
+                "HOT": 1.0 + 0.1 * profits["HOT"] * (t_max/mBEAU), 
+                "WAIT": 1.0 
+            }
 
 
 class Ant:
