@@ -1,9 +1,5 @@
 import subprocess
 import shutil
-import numpy as np
-import csv
-import time
-import re
 import sys
 import geopandas as gpd
 import random
@@ -16,8 +12,8 @@ if len(sys.argv) > 1:
     # Use the filename provided as a command-line argument
     filepath_argv = 'datasets/cplex/' + sys.argv[1] 
 else:
-    filepath_argv = "datasets/cplex/testData-cplex.dat"  # Default filename in the datasets directory
-    print("No input parameter provided. Using default: testData-cplex.dat")
+    filepath_argv = "datasets/cplex/testData1.dat"  # Default filename in the datasets directory
+    print("No input parameter provided. Using default: testData1.dat")
     #sys.exit(1) 
 
 
@@ -124,20 +120,25 @@ csv_outputs_dir = os.path.join(script_dir, 'cplex-files', 'results')  # Path to 
 
 bf_num = 0
 
-for csv_file in csv_files:
-    
-    bf_num += 1
+# Initialize variables to store the first "HOT"/"BEAU" and last "MOVE" action
+first_zone = None
+last_move_zone = None
 
+# Loop through the actions
+for csv_file in csv_files:
+
+    first_zone = None
+    last_move_zone = None
+    bf_num += 1
+    
     csv_file_path = os.path.join(csv_outputs_dir, csv_file)  # Absolute path to the CSV file
 
     df = pd.read_csv(csv_file_path) 
     
     fig, ax = plt.subplots(figsize=(12, 8))
     
-
     points_per_action = {}
 
-    
     for index, row in df.iterrows():
         zone_from = row['Zone_From']
         zone_to = row['Zone_To']
@@ -145,34 +146,51 @@ for csv_file in csv_files:
         time_from = row['Time_From']
         time_to = row['Time_To']
         
-        #Plot HOT and BEAU points in the zones
+        # Handle HOT and BEAU actions
         if action == 'HOT' or action == 'BEAU':
             zone_polygon = gdf[gdf['name'] == f'Area {zone_from}'].geometry.iloc[0]
             random_points = generate_random_points(zone_polygon, 1)
             points_gdf = gpd.GeoDataFrame({'geometry': random_points}, crs=gdf.crs)
             
-            #Store the points for this action (with index)
+            # Store the points for this action (with index)
             points_per_action[index] = random_points
             
-            #Plot all points for HOT and BEAU actions
+            # Track the first HOT or BEAU action
+            if first_zone is None:
+                first_zone = zone_from
+            
+            # Plot the points
             if action == 'HOT':
-                points_gdf.plot(ax=ax, color='red', markersize=50)
+                points_gdf.plot(ax=ax, color='red', markersize=50, zorder=5)  # Higher zorder to bring points to the front
             elif action == 'BEAU':
-                points_gdf.plot(ax=ax, color='blue', markersize=50)
+                points_gdf.plot(ax=ax, color='blue', markersize=50, zorder=5)  # Higher zorder to bring points to the front
 
-        #Plot MOVE arrows
+        # Handle MOVE actions and track last move zone
         if action == 'MOVE':
             zone_from_polygon = gdf[gdf['name'] == f'Area {zone_from}'].geometry.iloc[0]
             zone_to_polygon = gdf[gdf['name'] == f'Area {zone_to}'].geometry.iloc[0]
             
-            #Draw an arrow from zone_from to zone_to
+            # Update the last move zone
+            last_move_zone = zone_to
+            
+            # Draw an arrow from zone_from to zone_to
             line = LineString([zone_from_polygon.centroid, zone_to_polygon.centroid])
-            ax.plot(*line.xy, color='green', linewidth=2, marker='o')
+            ax.plot(*line.xy, color='green', linewidth=2, marker='o', zorder=4)
 
-    #Plot all zones in the background
-    gdf.plot(ax=ax, color='lightgrey', edgecolor='black', alpha=0.5)
+    # Plot all zones in the background (with a lower zorder to keep zones in the background)
+    gdf.plot(ax=ax, color='lightgrey', edgecolor='black', alpha=0.5, zorder=1)
 
-    #Draw lines between consecutive actions (index-based) only
+    # Highlight the first zone that started (after plotting all points)
+    if first_zone:
+        first_zone_polygon = gdf[gdf['name'] == f'Area {first_zone}'].geometry.iloc[0]
+        gdf[gdf['name'] == f'Area {first_zone}'].plot(ax=ax, color='#89ABE3', alpha=0.5, zorder=2)  # Highlight color for the first zone
+
+    # Highlight the last zone that moved (after plotting all points)
+    if last_move_zone:
+        last_move_zone_polygon = gdf[gdf['name'] == f'Area {last_move_zone}'].geometry.iloc[0]
+        gdf[gdf['name'] == f'Area {last_move_zone}'].plot(ax=ax, color='#EA738D', alpha=0.5, zorder=3)  # Highlight color for the last move zone
+
+    # Draw lines between consecutive actions (index-based) only
     for i in range(1, len(df)):
         if df.iloc[i]['Action'] in ['HOT', 'BEAU'] and df.iloc[i-1]['Action'] in ['HOT', 'BEAU']:
             points_from = points_per_action.get(i-1, [])
@@ -181,21 +199,23 @@ for csv_file in csv_files:
             # If both have points, draw lines between them (first point from the previous and first point from current)
             if points_from and points_to:
                 line = LineString([points_from[0], points_to[0]])
-                ax.plot(*line.xy, color='black', linewidth=1)
+                ax.plot(*line.xy, color='black', linewidth=1, zorder=4)
 
-    #Markers
+    # Markers for HOT and BEAU actions
     hot_patch = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=10, label='HOT')
     beau_patch = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=10, label='BEAU')
-    ax.legend(handles=[hot_patch, beau_patch], loc='best')
+    start_patch = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#89ABE3', markersize=10, label='START ZONE')
+    end_patch = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#EA738D', markersize=10, label='END ZONE')
+    ax.legend(handles=[hot_patch, beau_patch, start_patch, end_patch], loc='best')
 
-    #Add the names of each zone to the plot
+    # Add the names of each zone to the plot
     for idx, row in gdf.iterrows():
-        #Get the centroid of the zone
+        # Get the centroid of the zone
         zone_centroid = row['geometry'].centroid
-        #Plot the zone name at the centroid
-        ax.text(zone_centroid.x, zone_centroid.y, row['name'], fontsize=10, ha='center', color='black')
+        # Plot the zone name at the centroid
+        ax.text(zone_centroid.x, zone_centroid.y, row['name'], fontsize=10, ha='center', color='black', zorder=6)
 
-    #Customize the plot
+    # Customize the plot
     plt.title(f"CPLEX - Route of a Beautificator ({bf_num})")
     
     #Save the plot with a dynamic filename based on the CSV file
@@ -207,4 +227,4 @@ for csv_file in csv_files:
 
     # Save the plot 
     plt.savefig(output_image_name)
-    plt.close()  
+    plt.close()

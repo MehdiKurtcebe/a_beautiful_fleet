@@ -1,1 +1,1 @@
-run -> "python gui-cleanv2.py"
+run -> "python gui-clean.py"

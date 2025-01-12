@@ -1,6 +1,6 @@
 import sys
 import subprocess
-import shutil
+import signal
 import os
 from PyQt6.QtWidgets import (
     QApplication,
@@ -22,6 +22,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
+import platform
+
 class Worker(QThread):
     finished = pyqtSignal()
     progress = pyqtSignal(int)
@@ -37,10 +39,33 @@ class Worker(QThread):
 
     def run(self):
         try:
+            creation_flags = 0
+            preexec_fn = None
+
+            # Use `os.setsid` for Unix-like systems or `CREATE_NEW_PROCESS_GROUP` for Windows
+            if platform.system() == "Windows":
+                creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
+            else:
+                preexec_fn = os.setsid
+
             if self.command == "aco":
-                self.process = subprocess.Popen(['.venv/Scripts/python', 'aco/bf-aco-cleanv2.py', self.input_param], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                self.process = subprocess.Popen(
+                    ['.venv/Scripts/python', 'aco/bf-aco-clean.py', self.input_param],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    creationflags=creation_flags,
+                    preexec_fn=preexec_fn
+                )
             elif self.command == "cplex":
-                self.process = subprocess.Popen(['.venv/Scripts/python', 'run-cplexv2.py', self.input_param], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                self.process = subprocess.Popen(
+                    ['.venv/Scripts/python', 'run-cplex.py', self.input_param],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    creationflags=creation_flags,
+                    preexec_fn=preexec_fn
+                )
             else:
                 raise ValueError("Invalid command")
 
@@ -65,8 +90,16 @@ class Worker(QThread):
     def stop(self):
         self._is_running = False
         if self.process:
-            self.process.terminate()
-            self.process.wait()
+            try:
+                # Terminate the entire process group
+                if platform.system() == "Windows":
+                    self.process.send_signal(signal.CTRL_BREAK_EVENT)
+                else:
+                    os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+            except Exception as e:
+                self.error.emit(f"Error stopping process: {e}")
+
+
 
 
 
