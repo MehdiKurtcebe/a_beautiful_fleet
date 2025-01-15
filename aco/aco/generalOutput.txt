@@ -1,0 +1,11 @@
+-----ACO-----
+Total Beautificators: 7
+Beautificator 1 Start Zone: 3
+Beautificator 2 Start Zone: 5
+Beautificator 3 Start Zone: 8
+Beautificator 4 Start Zone: 9
+Beautificator 5 Start Zone: 11
+Beautificator 6 Start Zone: 13
+Beautificator 7 Start Zone: 15
+Total Scooters: 150
+Total Profit: 995.0

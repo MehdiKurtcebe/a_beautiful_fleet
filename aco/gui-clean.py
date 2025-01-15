@@ -2,10 +2,10 @@ import sys
 import subprocess
 import signal
 import os
+import platform
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
-    QLabel,
     QVBoxLayout,
     QWidget,
     QHBoxLayout,
@@ -14,15 +14,14 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QComboBox,
-    QScrollArea,
     QDialog,
     QProgressBar,
     QMessageBox,
 )
-from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 
-import platform
 
 class Worker(QThread):
     finished = pyqtSignal()
@@ -121,10 +120,10 @@ class RunningDialog(QDialog):
 
 class SplitViewer(QMainWindow):
     def __init__(self):
+        self.globalCommand = None
         super().__init__()
         self.setWindowTitle("A Beautiful Fleet")
         self.setGeometry(100, 100, 1200, 800)
-        self.scaleFactor = 0.5
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -132,37 +131,23 @@ class SplitViewer(QMainWindow):
         main_layout = QHBoxLayout(central_widget)
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        img_widget = QWidget()
-        img_layout = QVBoxLayout(img_widget)
+        html_widget = QWidget()
+        html_layout = QVBoxLayout(html_widget)
 
-        self.img_label = QLabel()
-        self.img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.web_view = QWebEngineView()
+        self.web_view.setUrl(QUrl("about:blank"))
+        html_layout.addWidget(self.web_view)
 
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidget(self.img_label)
-        self.scroll_area.setWidgetResizable(True)
-        img_layout.addWidget(self.scroll_area)
+        self.html_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'maps')
+        self.html_files = self.get_html_files(self.html_folder)
 
-        self.image_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'maps')
-        self.image_files = self.get_image_files(self.image_folder)
+        if self.html_files:
+            self.update_html(self.html_files[0])
 
-        if self.image_files:
-            self.update_image(self.image_files[0])
-
-        self.image_selector = QComboBox()
-        self.image_selector.addItems(self.image_files)
-        self.image_selector.currentTextChanged.connect(self.on_image_select)
-        img_layout.addWidget(self.image_selector)
-
-        zoom_layout = QHBoxLayout()
-        zoom_in_button = QPushButton("Zoom In")
-        zoom_in_button.clicked.connect(self.zoom_in)
-        zoom_layout.addWidget(zoom_in_button)
-
-        zoom_out_button = QPushButton("Zoom Out")
-        zoom_out_button.clicked.connect(self.zoom_out)
-        zoom_layout.addWidget(zoom_out_button)
-        img_layout.addLayout(zoom_layout)
+        self.html_selector = QComboBox()
+        self.html_selector.addItems(self.html_files)
+        self.html_selector.currentTextChanged.connect(self.on_html_select)
+        html_layout.addWidget(self.html_selector)
 
         input_widget = QWidget()
         input_layout = QVBoxLayout(input_widget)
@@ -183,7 +168,7 @@ class SplitViewer(QMainWindow):
         self.text_output.setReadOnly(True)
         input_layout.addWidget(self.text_output)
 
-        splitter.addWidget(img_widget)
+        splitter.addWidget(html_widget)
         splitter.addWidget(input_widget)
 
         total_width = self.width()
@@ -193,8 +178,6 @@ class SplitViewer(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        if hasattr(self, "img_label") and self.img_label.pixmap():
-            self.update_image(self.image_selector.currentText())
 
     def run_aco_button(self):
         filename = self.input_field.text()
@@ -211,10 +194,11 @@ class SplitViewer(QMainWindow):
             self.text_output.setText("Please enter a valid filename.")
 
     def run_algorithm(self, command, filename):
+        self.globalCommand = command
         self.dialog = RunningDialog(self)
         self.worker = Worker(command, filename)
         self.worker.finished.connect(self.on_finished)
-        self.worker.output.connect(self.on_output)
+        #self.worker.output.connect(self.on_output)
         self.worker.error.connect(self.on_error)
         self.dialog.rejected.connect(self.worker.stop)
 
@@ -223,7 +207,8 @@ class SplitViewer(QMainWindow):
 
     def on_finished(self):
         self.dialog.close()
-        self.refresh_image_list()
+        self.refresh_html_list()
+        self.writeOutput()
 
     def on_output(self, output):
         self.text_output.append(output)
@@ -232,38 +217,53 @@ class SplitViewer(QMainWindow):
         QMessageBox.critical(self, "Error", error)
         self.dialog.close()
 
-    def get_image_files(self, folder_path):
-        return [f for f in os.listdir(folder_path) if f.lower().endswith(('.png', '.jpg'))]
+    def get_html_files(self, folder_path):
+        return [f for f in os.listdir(folder_path) if f.lower().endswith('.html')]
 
-    def update_image(self, image_file):
-        image_path = os.path.join(self.image_folder, image_file)
-        pixmap = QPixmap(image_path)
-        scaled_pixmap = pixmap.scaled(
-            int(self.scaleFactor * pixmap.width()),
-            int(self.scaleFactor * pixmap.height()),
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation,
-        )
-        self.img_label.setPixmap(scaled_pixmap)
-        self.img_label.adjustSize()
+    def update_html(self, html_file):
+        html_path = os.path.join(self.html_folder, html_file) 
 
-    def on_image_select(self, selected_image):
-        self.update_image(selected_image)
+        if html_file == "":
+            return
+        
+        # Load the HTML file content
+        with open(html_path, 'r') as f:
+            html_content = f.read()
 
-    def zoom_in(self):
-        self.scaleFactor *= 1.1
-        self.update_image(self.image_selector.currentText())
+        # Inject Leaflet if it's not already present 
+        if 'leaflet.js' not in html_content:
+            leaflet_css = '<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />'
+            leaflet_js = '<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>'
+            html_content = html_content.replace('<head>', f'<head>{leaflet_css}{leaflet_js}')
+        else:
+            print("leafletisthere")
 
-    def zoom_out(self):
-        self.scaleFactor *= 0.9
-        self.update_image(self.image_selector.currentText())
+        # Set the modified HTML content to the web view
+        self.web_view.setHtml(html_content)
 
-    def refresh_image_list(self):
-        self.image_files = self.get_image_files(self.image_folder)
-        self.image_selector.clear()
-        self.image_selector.addItems(self.image_files)
-        if self.image_files:
-            self.update_image(self.image_files[0])
+
+    def on_html_select(self, selected_html):
+        self.update_html(selected_html)
+
+    def refresh_html_list(self):
+        self.html_files = self.get_html_files(self.html_folder)
+        self.html_selector.clear()
+        self.html_selector.addItems(self.html_files)
+        if self.html_files:
+            self.update_html(self.html_files[0])
+    
+    def writeOutput(self):
+        if self.globalCommand == "cplex":
+            cplexOutputFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'cplex-files', 'results', 'generalOutput.txt')
+            with open(cplexOutputFile, 'r') as f:
+                cplexOutputContent = f.read()
+            self.on_output(cplexOutputContent)
+        
+        if self.globalCommand == "aco":
+            acoOutputFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'aco', 'generalOutput.txt')
+            with open(acoOutputFile, 'r') as f:
+                acoOutputContent = f.read()
+            self.on_output(acoOutputContent)
 
 
 if __name__ == "__main__":

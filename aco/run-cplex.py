@@ -1,12 +1,14 @@
 import subprocess
 import shutil
+import csv
 import sys
 import geopandas as gpd
 import random
-import pandas as pd
-import matplotlib.pyplot as plt
-from shapely.geometry import Point, LineString
+from shapely.geometry import Point, Polygon
 import os
+import geojson
+import folium
+from folium.plugins import AntPath  # Import AntPath for animated paths
 
 if len(sys.argv) > 1:
     # Use the filename provided as a command-line argument
@@ -115,6 +117,21 @@ def generate_random_points(polygon, num_points):
             points.append(random_point)
     return points
 
+
+for i in range(0,16):
+    output_map_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), 
+        "maps", 
+        f"cplex_bf_{i}_route.html"
+    )
+
+    # Check if the file exists before attempting to delete it
+    if os.path.exists(output_map_file):
+        os.remove(output_map_file)
+        print(f"File deleted: {output_map_file}")
+    else:
+        print(f"File not found: {output_map_file}") 
+
 script_dir = os.path.dirname(os.path.realpath(__file__))  # Get script's directory
 csv_outputs_dir = os.path.join(script_dir, 'cplex-files', 'results')  # Path to csv-outputs dir
 
@@ -124,107 +141,126 @@ bf_num = 0
 first_zone = None
 last_move_zone = None
 
-# Loop through the actions
+
+bf_num = 1
+
 for csv_file in csv_files:
+    csv_file_path = os.path.join(csv_outputs_dir, csv_file)
+    # 1. Data Preparation
+    with open(csv_file_path, 'r') as f:
+        reader = csv.DictReader(f)
+        route_data = list(reader)
 
-    first_zone = None
-    last_move_zone = None
-    bf_num += 1
-    
-    csv_file_path = os.path.join(csv_outputs_dir, csv_file)  # Absolute path to the CSV file
+    # Load the GeoJSON file containing the zones
+    script_dir = os.path.dirname(os.path.realpath(__file__))  # Get script's directory
+    geojson_file = os.path.join(script_dir, 'aco', 'map-izmit.geojson')  # Construct absolute path
+    with open(geojson_file) as f:
+        zones = geojson.load(f)
 
-    df = pd.read_csv(csv_file_path) 
-    
-    fig, ax = plt.subplots(figsize=(12, 8))
-    
-    points_per_action = {}
+    def get_centroid(zone_feature):
+        # Calculate centroid of a polygon (you might need a more robust method)
+        coords = zone_feature['geometry']['coordinates'][0]
+        x, y = zip(*coords)
+        return (sum(x) / len(x), sum(y) / len(y))
 
-    for index, row in df.iterrows():
-        zone_from = row['Zone_From']
-        zone_to = row['Zone_To']
+    zone_centroids = {}
+    for feature in zones['features']:
+        zone_id = feature['properties']['name'].replace('Area ', '')  # Assuming 'Area 1' format
+        zone_centroids[zone_id] = get_centroid(feature)
+
+    def get_random_point_in_polygon(polygon_coords):
+        """Generates a random point within a polygon."""
+        polygon = Polygon(polygon_coords)
+        minx, miny, maxx, maxy = polygon.bounds
+        while True:
+            p = Point(random.uniform(minx, maxx), random.uniform(miny, maxy))
+            if polygon.contains(p):
+                return (p.y, p.x)  # Return in (latitude, longitude) order
+
+    # 2. Route Calculation (with random points and move actions)
+    m = folium.Map(location=[40.764, 29.922], zoom_start=15)
+
+    route_coordinates = []
+    last_point_before_move = None
+    randomPointBefore = None
+    isMove = False
+    pointFromMove = None
+    isFirstAction = True
+
+    colorHot = "black"
+    colorBeau = "black"
+
+    for i in range(len(route_data)):
+        row = route_data[i]
+        from_zone = str(row['Zone_From'])
         action = row['Action']
-        time_from = row['Time_From']
-        time_to = row['Time_To']
-        
-        # Handle HOT and BEAU actions
-        if action == 'HOT' or action == 'BEAU':
-            zone_polygon = gdf[gdf['name'] == f'Area {zone_from}'].geometry.iloc[0]
-            random_points = generate_random_points(zone_polygon, 1)
-            points_gdf = gpd.GeoDataFrame({'geometry': random_points}, crs=gdf.crs)
-            
-            # Store the points for this action (with index)
-            points_per_action[index] = random_points
-            
-            # Track the first HOT or BEAU action
-            if first_zone is None:
-                first_zone = zone_from
-            
-            # Plot the points
-            if action == 'HOT':
-                points_gdf.plot(ax=ax, color='red', markersize=50, zorder=5)  # Higher zorder to bring points to the front
-            elif action == 'BEAU':
-                points_gdf.plot(ax=ax, color='blue', markersize=50, zorder=5)  # Higher zorder to bring points to the front
 
-        # Handle MOVE actions and track last move zone
-        if action == 'MOVE':
-            zone_from_polygon = gdf[gdf['name'] == f'Area {zone_from}'].geometry.iloc[0]
-            zone_to_polygon = gdf[gdf['name'] == f'Area {zone_to}'].geometry.iloc[0]
-            
-            # Update the last move zone
-            last_move_zone = zone_to
-            
-            # Draw an arrow from zone_from to zone_to
-            line = LineString([zone_from_polygon.centroid, zone_to_polygon.centroid])
-            ax.plot(*line.xy, color='green', linewidth=2, marker='o', zorder=4)
+        if action in ("BEAU", "HOT"):
+            zone_polygon = next((f['geometry']['coordinates'][0] for f in zones['features'] if f['properties']['name'] == f"Area {from_zone}"), None)
+            if zone_polygon:
+                if isMove:
+                    point = pointFromMove
+                    isMove = False
+                    randomPointBefore = None
+                else:
+                    point = get_random_point_in_polygon(zone_polygon)
+                if randomPointBefore is not None:
+                    AntPath([randomPointBefore, point], color="red", weight=2.5, opacity=1).add_to(m)
 
-    # Plot all zones in the background (with a lower zorder to keep zones in the background)
-    gdf.plot(ax=ax, color='lightgrey', edgecolor='black', alpha=0.5, zorder=1)
+                randomPointBefore = point
+                route_coordinates.append(point)
+                last_point_before_move = point
 
-    # Highlight the first zone that started (after plotting all points)
-    if first_zone:
-        first_zone_polygon = gdf[gdf['name'] == f'Area {first_zone}'].geometry.iloc[0]
-        gdf[gdf['name'] == f'Area {first_zone}'].plot(ax=ax, color='#89ABE3', alpha=0.5, zorder=2)  # Highlight color for the first zone
+                # Add marker for BEAU or HOT action
+                if action == "BEAU":
+                    folium.Marker(location=point, popup=f"BEAU - Area {from_zone}", icon=folium.Icon(color=colorBeau)).add_to(m)  # Blue marker for BEAU
+                elif action == "HOT":
+                    folium.Marker(location=point, popup=f"HOT - Area {from_zone}", icon=folium.Icon(color=colorHot)).add_to(m)  # Red marker for HOT
 
-    # Highlight the last zone that moved (after plotting all points)
-    if last_move_zone:
-        last_move_zone_polygon = gdf[gdf['name'] == f'Area {last_move_zone}'].geometry.iloc[0]
-        gdf[gdf['name'] == f'Area {last_move_zone}'].plot(ax=ax, color='#EA738D', alpha=0.5, zorder=3)  # Highlight color for the last move zone
+                if isFirstAction:
+                    isFirstAction = False
+                    colorHot = "red"
+                    colorBeau = "blue"
 
-    # Draw lines between consecutive actions (index-based) only
-    for i in range(1, len(df)):
-        if df.iloc[i]['Action'] in ['HOT', 'BEAU'] and df.iloc[i-1]['Action'] in ['HOT', 'BEAU']:
-            points_from = points_per_action.get(i-1, [])
-            points_to = points_per_action.get(i, [])
-            
-            # If both have points, draw lines between them (first point from the previous and first point from current)
-            if points_from and points_to:
-                line = LineString([points_from[0], points_to[0]])
-                ax.plot(*line.xy, color='black', linewidth=1, zorder=4)
+        elif action == "MOVE" and last_point_before_move:
+            next_row = route_data[i + 1] if i + 1 < len(route_data) else None
+            if next_row:
+                next_zone = str(next_row['Zone_From'])
+                next_action = next_row['Action']
 
-    # Markers for HOT and BEAU actions
-    hot_patch = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=10, label='HOT')
-    beau_patch = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=10, label='BEAU')
-    start_patch = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#89ABE3', markersize=10, label='START ZONE')
-    end_patch = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#EA738D', markersize=10, label='END ZONE')
-    ax.legend(handles=[hot_patch, beau_patch, start_patch, end_patch], loc='best')
+                if next_action in ("BEAU", "HOT"):
+                    next_zone_polygon = next((f['geometry']['coordinates'][0] for f in zones['features'] if f['properties']['name'] == f"Area {next_zone}"), None)
+                    if next_zone_polygon:
+                        next_point = get_random_point_in_polygon(next_zone_polygon)
+                        route_coordinates.append(next_point)
 
-    # Add the names of each zone to the plot
-    for idx, row in gdf.iterrows():
-        # Get the centroid of the zone
-        zone_centroid = row['geometry'].centroid
-        # Plot the zone name at the centroid
-        ax.text(zone_centroid.x, zone_centroid.y, row['name'], fontsize=10, ha='center', color='black', zorder=6)
+                        # Draw an animated path (AntPath) between the last point before move and the new point
+                        AntPath([last_point_before_move, next_point], color="red", weight=2.5, opacity=1).add_to(m)
+                        pointFromMove = next_point
+                        isMove = True
 
-    # Customize the plot
-    plt.title(f"CPLEX - Route of a Beautificator ({bf_num})")
-    
+    # 3. Visualization
+    # Add zones to the map
+    folium.GeoJson(zones, 
+                style_function=lambda feature: {'fillColor': 'lightblue', 'color': 'blue', 'weight': 2},
+                tooltip=folium.GeoJsonTooltip(fields=['name'], aliases=['Zone: '], labels=True, sticky=True)
+                ).add_to(m)
+
+    # Add zone names as markers at the centroids
+    for zone_id, centroid in zone_centroids.items():
+        folium.Marker(location=[centroid[1], centroid[0]], 
+                    icon=folium.DivIcon(html=f'<div style="font-weight: bold;">{zone_id}</div>'),
+                    popup=f"Zone {zone_id}"
+                    ).add_to(m)
+
     #Save the plot with a dynamic filename based on the CSV file
-    output_image_name = os.path.join(
+    output_html_name = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), 
         "maps", 
-        f"cplex_bf_{bf_num}_route.png"
+        f"cplex_bf_{bf_num}_route.html"
     )
+    m.save(output_html_name)
 
-    # Save the plot 
-    plt.savefig(output_image_name)
-    plt.close()
+    bf_num += 1
+
+
