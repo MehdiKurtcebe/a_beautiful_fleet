@@ -172,7 +172,7 @@ class SplitViewer(QMainWindow):
         splitter.addWidget(input_widget)
 
         total_width = self.width()
-        splitter.setSizes([int(total_width * 0.7), int(total_width * 0.3)])
+        splitter.setSizes([int(total_width * 0.85), int(total_width * 0.15)])
 
         main_layout.addWidget(splitter)
 
