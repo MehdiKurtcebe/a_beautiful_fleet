@@ -169,7 +169,7 @@ class Ant:
 
     def choose_action(self, current_zone, current_time):
         actions = []
-        
+             
         for z2 in range(1, zones + 1):
             if current_zone != z2 and n[z2 - 1] + aco_nOut[z2 - 1] > 1:  #bigger than 1 because to be sure not move for nothing
                 move_cost = mMOVE[current_zone - 1][z2 - 1]
@@ -465,8 +465,8 @@ for csv_file in csv_files:
     pointFromMove = None
     isFirstAction = True
 
-    colorHot = "black"
-    colorBeau = "black"
+    iconBeau = "black-location-overlay.png"
+    iconHot = "black-location-overlay.png"
 
     for i in range(len(route_data)):
         row = route_data[i]
@@ -483,7 +483,7 @@ for csv_file in csv_files:
                 else:
                     point = get_random_point_in_polygon(zone_polygon)
                 if randomPointBefore is not None:
-                    AntPath([randomPointBefore, point], color="red", weight=2.5, opacity=1).add_to(m)
+                    AntPath([randomPointBefore, point], color="blue", weight=2.5, opacity=1).add_to(m)
 
                 randomPointBefore = point
                 route_coordinates.append(point)
@@ -491,14 +491,14 @@ for csv_file in csv_files:
 
                 # Add marker for BEAU or HOT action
                 if action == "BEAU":
-                    folium.Marker(location=point, popup=f"BEAU - Area {from_zone}", icon=folium.Icon(color=colorBeau)).add_to(m)  # Blue marker for BEAU
+                    folium.Marker(location=point, popup=f"BEAU - Area {from_zone}", icon=folium.features.CustomIcon(iconBeau, icon_size=(45,45))).add_to(m)  # Blue marker for BEAU
                 elif action == "HOT":
-                    folium.Marker(location=point, popup=f"HOT - Area {from_zone}", icon=folium.Icon(color=colorHot)).add_to(m)  # Red marker for HOT
+                    folium.Marker(location=point, popup=f"HOT - Area {from_zone}", icon=folium.features.CustomIcon(iconHot, icon_size=(45,45))).add_to(m)  # Red marker for HOT
 
                 if isFirstAction:
                     isFirstAction = False
-                    colorHot = "red"
-                    colorBeau = "blue"
+                    iconBeau = "blue-location-overlay.png"
+                    iconHot = "red-location-overlay.png"
 
         elif action == "MOVE" and last_point_before_move:
             next_row = route_data[i + 1] if i + 1 < len(route_data) else None
@@ -513,7 +513,7 @@ for csv_file in csv_files:
                         route_coordinates.append(next_point)
 
                         # Draw an animated path (AntPath) between the last point before move and the new point
-                        AntPath([last_point_before_move, next_point], color="red", weight=2.5, opacity=1).add_to(m)
+                        AntPath([last_point_before_move, next_point], color="blue", weight=2.5, opacity=1).add_to(m)
                         pointFromMove = next_point
                         isMove = True
 

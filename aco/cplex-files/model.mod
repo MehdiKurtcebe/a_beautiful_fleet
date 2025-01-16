@@ -106,47 +106,54 @@ subject to {
   }
 }
 
-execute {
-  var scooters = 0;
-  for (var z in Z) {
-    scooters += n[z];
-  }
+execute { 
+  var scooters = 0; 
+  for (var z in Z) { 
+    scooters += n[z]; 
+  } 
   
-  var objf = new IloOplOutputFile("./results/" + objFile);
-  objf.writeln("beautificators: " + beautificators);
-  objf.writeln("scooters: " + scooters);
-  objf.writeln("objective value: " + cplex.getObjValue());
-  objf.close();
+  var objf = new IloOplOutputFile("./results/" + objFile); 
+  objf.writeln("-----CPLEX-----"); 
+  objf.writeln("Total Beautificators: " + beautificators); 
+  for (var z in z0) { 
+    objf.writeln("Beautificator " + z + " Start Zone: " + z0[z]); 
+  } 
+  objf.writeln("Total Scooters: " + scooters); 
+  objf.writeln("Total Profit: " + cplex.getObjValue()); 
+  objf.close(); 
 
-  // her guzellestirici icin ayri dosya olustur
-  for (var b in B) {
-    // Dosya adini olustur
+  // her guzellestirici icin ayri dosya olustur 
+  for (var b in B) { 
+    // Dosya adini olustur 
     var filename = "./results/" + outputFile + "_" + b + ".csv"; 
 
-    // Dosyayi ac
-    var f = new IloOplOutputFile(filename);
+    // Dosyayi ac 
+    var f = new IloOplOutputFile(filename); 
 
-    // Header satirini yaz
-    f.writeln("Beautificator,Zone_From,Time_From,Zone_To,Time_To,Action");
+    // Header satirini yaz 
+    f.writeln("Beautificator,Zone_From,Time_From,Zone_To,Time_To,Action"); 
 
-    // guzellestiricinin hareketlerini yazdir
-    for (var a in A) {
-      if (x[b][a] > 0) {
-        f.write(b + "," + a.nFrom.z + "," + a.nFrom.t + "," + a.nTo.z + "," + a.nTo.t + ",");
-        if (A_BEAU.contains(a)) {
-          f.writeln("BEAU");
-        } else if (A_HOT.contains(a)) {
-          f.writeln("HOT");
-        } else if (A_MOVE.contains(a)) {
-          f.writeln("MOVE");
-        } else if (A_WAIT.contains(a)) {
-          f.writeln("WAIT");
-        } else {
-          f.writeln("");
-        }
+    // Zaman dilimlerine gore hareketleri yazdir
+    for (var t = 0; t <= t_max; t++) {
+      for (var a in A) {
+        if (x[b][a] > 0 && a.nFrom.t == t) { 
+          f.write(b + "," + a.nFrom.z + "," + a.nFrom.t + "," + a.nTo.z + "," + a.nTo.t + ","); 
+          if (A_BEAU.contains(a)) { 
+            f.writeln("BEAU"); 
+          } else if (A_HOT.contains(a)) { 
+            f.writeln("HOT"); 
+          } else if (A_MOVE.contains(a)) { 
+            f.writeln("MOVE"); 
+          } else if (A_WAIT.contains(a)) { 
+            f.writeln("WAIT"); 
+          } else { 
+            f.writeln(""); 
+          } 
+        } 
       }
     }
-    // Dosyayi kapat
+
+    // Dosyayi kapat 
     f.close(); 
   } 
 }

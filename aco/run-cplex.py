@@ -141,7 +141,6 @@ bf_num = 0
 first_zone = None
 last_move_zone = None
 
-
 bf_num = 1
 
 for csv_file in csv_files:
@@ -187,8 +186,8 @@ for csv_file in csv_files:
     pointFromMove = None
     isFirstAction = True
 
-    colorHot = "black"
-    colorBeau = "black"
+    iconBeau = "black-location-overlay.png"
+    iconHot = "black-location-overlay.png"
 
     for i in range(len(route_data)):
         row = route_data[i]
@@ -213,14 +212,14 @@ for csv_file in csv_files:
 
                 # Add marker for BEAU or HOT action
                 if action == "BEAU":
-                    folium.Marker(location=point, popup=f"BEAU - Area {from_zone}", icon=folium.Icon(color=colorBeau)).add_to(m)  # Blue marker for BEAU
+                    folium.Marker(location=point, popup=f"BEAU - Area {from_zone}", icon=folium.features.CustomIcon(iconBeau, icon_size=(45,45))).add_to(m)  # Blue marker for BEAU
                 elif action == "HOT":
-                    folium.Marker(location=point, popup=f"HOT - Area {from_zone}", icon=folium.Icon(color=colorHot)).add_to(m)  # Red marker for HOT
+                    folium.Marker(location=point, popup=f"HOT - Area {from_zone}", icon=folium.features.CustomIcon(iconHot, icon_size=(45,45))).add_to(m)  # Red marker for HOT
 
                 if isFirstAction:
                     isFirstAction = False
-                    colorHot = "red"
-                    colorBeau = "blue"
+                    iconBeau = "blue-location-overlay.png"
+                    iconHot = "red-location-overlay.png"
 
         elif action == "MOVE" and last_point_before_move:
             next_row = route_data[i + 1] if i + 1 < len(route_data) else None

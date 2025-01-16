@@ -2,7 +2,6 @@ import sys
 import subprocess
 import signal
 import os
-import platform
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -21,6 +20,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtCore import QUrl
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+import platform
+
 
 
 class Worker(QThread):
@@ -221,25 +222,18 @@ class SplitViewer(QMainWindow):
         return [f for f in os.listdir(folder_path) if f.lower().endswith('.html')]
 
     def update_html(self, html_file):
-        html_path = os.path.join(self.html_folder, html_file) 
+        html_path = os.path.join("http://127.0.0.1:5500/maps/", html_file) 
 
-        if html_file == "":
-            return
-        
-        # Load the HTML file content
-        with open(html_path, 'r') as f:
-            html_content = f.read()
+        if not html_file:
+            return 
 
-        # Inject Leaflet if it's not already present 
-        if 'leaflet.js' not in html_content:
-            leaflet_css = '<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />'
-            leaflet_js = '<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>'
-            html_content = html_content.replace('<head>', f'<head>{leaflet_css}{leaflet_js}')
-        else:
-            print("leafletisthere")
+        try:
+            self.web_view.setUrl(QUrl(html_path))
 
-        # Set the modified HTML content to the web view
-        self.web_view.setHtml(html_content)
+        except FileNotFoundError:
+            print(f"Error: HTML file not found at {html_path}")
+        except Exception as e:
+            print(f"An error occurred: {e}") 
 
 
     def on_html_select(self, selected_html):
