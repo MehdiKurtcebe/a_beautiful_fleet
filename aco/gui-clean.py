@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtCore import QUrl
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEngineProfile, QWebEngineSettings
 import platform
 
 
@@ -138,6 +139,14 @@ class SplitViewer(QMainWindow):
         self.web_view = QWebEngineView()
         self.web_view.setUrl(QUrl("about:blank"))
         html_layout.addWidget(self.web_view)
+        
+        settings = self.web_view.settings()
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True) # For map rendering
+        
+        profile = QWebEngineProfile.defaultProfile()
+        profile.setHttpUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
         self.html_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'maps')
         self.html_files = self.get_html_files(self.html_folder)
@@ -222,13 +231,13 @@ class SplitViewer(QMainWindow):
         return [f for f in os.listdir(folder_path) if f.lower().endswith('.html')]
 
     def update_html(self, html_file):
-        html_path = os.path.join("http://127.0.0.1:5500/maps/", html_file) 
+        html_path = os.path.join(os.getcwd(), "maps", html_file) 
 
         if not html_file:
             return 
 
         try:
-            self.web_view.setUrl(QUrl(html_path))
+            self.web_view.setUrl(QUrl.fromLocalFile(html_path))
 
         except FileNotFoundError:
             print(f"Error: HTML file not found at {html_path}")
