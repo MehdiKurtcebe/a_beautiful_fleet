@@ -24,7 +24,6 @@ from PyQt6.QtWebEngineCore import QWebEngineProfile, QWebEngineSettings
 import platform
 
 
-
 class Worker(QThread):
     finished = pyqtSignal()
     progress = pyqtSignal(int)
@@ -51,28 +50,28 @@ class Worker(QThread):
 
             if self.command == "aco":
                 self.process = subprocess.Popen(
-                    ['.venv/Scripts/python', 'aco/bf-aco-clean.py', self.input_param],
+                    [".venv/Scripts/python", "aco/bf-aco-clean.py", self.input_param],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
                     creationflags=creation_flags,
-                    preexec_fn=preexec_fn
+                    preexec_fn=preexec_fn,
                 )
             elif self.command == "cplex":
                 self.process = subprocess.Popen(
-                    ['.venv/Scripts/python', 'run-cplex.py', self.input_param],
+                    [".venv/Scripts/python", "run-cplex.py", self.input_param],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
                     creationflags=creation_flags,
-                    preexec_fn=preexec_fn
+                    preexec_fn=preexec_fn,
                 )
             else:
                 raise ValueError("Invalid command")
 
             while self._is_running:
                 output = self.process.stdout.readline()
-                if output == '' and self.process.poll() is not None:
+                if output == "" and self.process.poll() is not None:
                     break
                 if output:
                     self.output.emit(output.strip())
@@ -99,9 +98,6 @@ class Worker(QThread):
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
             except Exception as e:
                 self.error.emit(f"Error stopping process: {e}")
-
-
-
 
 
 class RunningDialog(QDialog):
@@ -139,16 +135,26 @@ class SplitViewer(QMainWindow):
         self.web_view = QWebEngineView()
         self.web_view.setUrl(QUrl("about:blank"))
         html_layout.addWidget(self.web_view)
-        
-        settings = self.web_view.settings()
-        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True) # For map rendering
-        
-        profile = QWebEngineProfile.defaultProfile()
-        profile.setHttpUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
-        self.html_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'maps')
+        settings = self.web_view.settings()
+        settings.setAttribute(
+            QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True
+        )
+        settings.setAttribute(
+            QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True
+        )
+        settings.setAttribute(
+            QWebEngineSettings.WebAttribute.WebGLEnabled, True
+        )  # For map rendering
+
+        profile = QWebEngineProfile.defaultProfile()
+        profile.setHttpUserAgent(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        )
+
+        self.html_folder = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "maps"
+        )
         self.html_files = self.get_html_files(self.html_folder)
 
         if self.html_files:
@@ -208,7 +214,7 @@ class SplitViewer(QMainWindow):
         self.dialog = RunningDialog(self)
         self.worker = Worker(command, filename)
         self.worker.finished.connect(self.on_finished)
-        #self.worker.output.connect(self.on_output)
+        # self.worker.output.connect(self.on_output)
         self.worker.error.connect(self.on_error)
         self.dialog.rejected.connect(self.worker.stop)
 
@@ -228,13 +234,13 @@ class SplitViewer(QMainWindow):
         self.dialog.close()
 
     def get_html_files(self, folder_path):
-        return [f for f in os.listdir(folder_path) if f.lower().endswith('.html')]
+        return [f for f in os.listdir(folder_path) if f.lower().endswith(".html")]
 
     def update_html(self, html_file):
-        html_path = os.path.join(os.getcwd(), "maps", html_file) 
+        html_path = os.path.join(os.getcwd(), "maps", html_file)
 
         if not html_file:
-            return 
+            return
 
         try:
             self.web_view.setUrl(QUrl.fromLocalFile(html_path))
@@ -242,8 +248,7 @@ class SplitViewer(QMainWindow):
         except FileNotFoundError:
             print(f"Error: HTML file not found at {html_path}")
         except Exception as e:
-            print(f"An error occurred: {e}") 
-
+            print(f"An error occurred: {e}")
 
     def on_html_select(self, selected_html):
         self.update_html(selected_html)
@@ -254,17 +259,24 @@ class SplitViewer(QMainWindow):
         self.html_selector.addItems(self.html_files)
         if self.html_files:
             self.update_html(self.html_files[0])
-    
+
     def writeOutput(self):
         if self.globalCommand == "cplex":
-            cplexOutputFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'cplex-files', 'results', 'generalOutput.txt')
-            with open(cplexOutputFile, 'r') as f:
+            cplexOutputFile = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "cplex-files",
+                "results",
+                "generalOutput.txt",
+            )
+            with open(cplexOutputFile, "r") as f:
                 cplexOutputContent = f.read()
             self.on_output(cplexOutputContent)
-        
+
         if self.globalCommand == "aco":
-            acoOutputFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'aco', 'generalOutput.txt')
-            with open(acoOutputFile, 'r') as f:
+            acoOutputFile = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "aco", "generalOutput.txt"
+            )
+            with open(acoOutputFile, "r") as f:
                 acoOutputContent = f.read()
             self.on_output(acoOutputContent)
 
